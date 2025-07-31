@@ -39,7 +39,7 @@ const DebtListScene = ({ debts, onEdit, onDelete, onSelect }: { debts: Debt[], o
 );
 
 export default function DebtScreen() {
-  const { data: debts, isLoading, isError } = useDebts();
+  const { data: debtsData, isLoading, isError, refetch } = useDebts();
   const deleteDebtMutation = useDeleteDebt();
   const layout = useWindowDimensions();
   const router = useRouter();
@@ -53,10 +53,10 @@ export default function DebtScreen() {
   ]);
 
   const { shortTermDebts, longTermDebts } = useMemo(() => {
-    const short = debts?.filter(d => d.type === 'short') ?? [];
-    const long = debts?.filter(d => d.type === 'long') ?? [];
+    const short = debtsData?.filter(d => d.type === 'short') ?? [];
+    const long = debtsData?.filter(d => d.type === 'long') ?? [];
     return { shortTermDebts: short, longTermDebts: long };
-  }, [debts]);
+  }, [debtsData]);
 
   const handleOpenAddModal = () => {
     setSelectedDebt(null);
@@ -75,8 +75,6 @@ export default function DebtScreen() {
   const handleSelectDebt = (debtId: string) => {
       router.push(`/debts/${debtId}`);
   };
-
-  const { data: debts, isLoading, isError, refetch } = useDebts();
   if (isLoading) return <StyledView className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></StyledView>;
   if (isError) return (
     <StyledView className="flex-1 justify-center items-center p-4">
