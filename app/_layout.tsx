@@ -8,10 +8,32 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useColorScheme } from 'nativewind';
 import { QueueProcessor } from './components/QueueProcessor';
 import Toast from 'react-native-toast-message';
+import { saveSupabaseKeys, getSupabaseKeys } from './lib/secrets';
 
 const queryClient = new QueryClient();
 
 const RootLayout = () => {
+  useEffect(() => {
+    const initializeSecrets = async () => {
+      // Check if keys are already stored
+      const { url } = await getSupabaseKeys();
+      if (url) return;
+
+      // If not, read from environment and save to secure store
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (supabaseUrl && supabaseAnonKey) {
+        await saveSupabaseKeys(supabaseUrl, supabaseAnonKey);
+        console.log('Supabase keys saved to secure store.');
+      } else {
+        console.error('Supabase environment variables not found!');
+      }
+    };
+
+    initializeSecrets();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <CustomThemeProvider>

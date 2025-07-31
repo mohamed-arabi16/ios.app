@@ -74,7 +74,14 @@ export default function AssetsScreen() {
 
 
   if (isLoading) return <StyledView className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></StyledView>;
-  if (isError) return <StyledView className="flex-1 justify-center items-center"><StyledText className="text-red-500">Error fetching assets.</StyledText></StyledView>;
+  if (isError) return (
+    <StyledView className="flex-1 justify-center items-center p-4">
+        <StyledText className="text-red-500 text-lg text-center mb-4">An error occurred while fetching your assets.</StyledText>
+        <StyledPressable onPress={() => refetch()} className="bg-blue-600 rounded-lg p-3">
+            <StyledText className="text-white font-bold">Try Again</StyledText>
+        </StyledPressable>
+    </StyledView>
+  );
 
   return (
     <StyledView className="flex-1 bg-gray-50 dark:bg-gray-900">

@@ -10,15 +10,28 @@ const StyledView = styled(View);
 const StyledText = styled(Text);
 const StyledPressable = styled(Pressable);
 
-const HistoryListItem = ({ item }: { item: DebtAmountHistory }) => (
-    <StyledView className="bg-white dark:bg-gray-800 p-3 rounded-lg mb-3 flex-row justify-between items-center">
-        <StyledView>
-            <StyledText className="text-gray-500 dark:text-gray-400">{new Date(item.logged_at).toLocaleString()}</StyledText>
-            <StyledText className="text-gray-800 dark:text-gray-200 text-base">{item.note || 'Update'}</StyledText>
+const HistoryListItem = ({ item, change }: { item: DebtAmountHistory, change: number }) => {
+    const isIncrease = change > 0;
+    const isDecrease = change < 0;
+    const colorClass = isIncrease ? 'text-red-500' : isDecrease ? 'text-green-500' : 'text-gray-500';
+
+    return (
+        <StyledView className="bg-white dark:bg-gray-800 p-3 rounded-lg mb-3 flex-row justify-between items-center">
+            <StyledView>
+                <StyledText className="text-gray-500 dark:text-gray-400">{new Date(item.logged_at).toLocaleString()}</StyledText>
+                <StyledText className="text-gray-800 dark:text-gray-200 text-base">{item.note || 'Update'}</StyledText>
+            </StyledView>
+            <StyledView className="items-end">
+                <StyledText className={`text-lg font-bold ${colorClass}`}>
+                    {isIncrease ? '+' : ''}{change.toFixed(2)}
+                </StyledText>
+                <StyledText className="text-sm text-gray-500 dark:text-gray-400">
+                    Total: ${item.amount.toFixed(2)}
+                </StyledText>
+            </StyledView>
         </StyledView>
-        <StyledText className="text-lg font-bold text-gray-900 dark:text-white">${item.amount.toFixed(2)}</StyledText>
-    </StyledView>
-);
+    );
+};
 
 export default function DebtDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -29,6 +42,20 @@ export default function DebtDetailScreen() {
         if (!id || typeof id !== 'string') return null;
         return debts?.find(d => d.id === id);
     }, [debts, id]);
+
+    const processedHistory = useMemo(() => {
+        if (!debt) return [];
+        const sortedHistory = [...debt.debt_amount_history].sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
+
+        let lastAmount = 0;
+        const historyWithChanges = sortedHistory.map(item => {
+            const change = item.amount - lastAmount;
+            lastAmount = item.amount;
+            return { ...item, change };
+        });
+
+        return historyWithChanges.sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
+    }, [debt]);
 
     if (isLoading) {
         return <StyledView className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></StyledView>;
@@ -49,9 +76,9 @@ export default function DebtDetailScreen() {
             </StyledView>
 
             <FlatList
-                data={[...debt.debt_amount_history].sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())}
+                data={processedHistory}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <HistoryListItem item={item} />}
+                renderItem={({ item }) => <HistoryListItem item={item} change={item.change} />}
                 contentContainerStyle={{ padding: 16 }}
                 ListHeaderComponent={() => <StyledText className="text-2xl font-bold text-gray-900 dark:text-white mb-4">History</StyledText>}
                 ListEmptyComponent={() => <StyledView className="flex-1 justify-center items-center mt-10"><StyledText className="text-lg text-gray-500">No payment history found.</StyledText></StyledView>}

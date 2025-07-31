@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabaseClient } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Currency } from './useIncomes';
 import { useNetwork } from './useNetwork';
@@ -33,6 +33,7 @@ export interface Debt {
 
 // 1. Hook to fetch all debts with history
 const fetchDebts = async (userId: string) => {
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('debts')
     .select('*, debt_amount_history(*)')
@@ -59,6 +60,7 @@ export const useDebts = () => {
 type AddDebtPayload = Omit<Debt, 'id' | 'user_id' | 'created_at' | 'debt_amount_history'>;
 
 export const addDebt = async (newDebt: AddDebtPayload, userId: string) => {
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
         .from('debts')
         .insert([{ ...newDebt, user_id: userId }])
@@ -128,6 +130,7 @@ export interface UpdateDebtPayload {
 }
 
 export const updateDebt = async (payload: UpdateDebtPayload) => {
+    const supabase = await getSupabaseClient();
     const { id, amount, note, ...basicDetails } = payload;
 
     // Update basic details if they exist
@@ -188,6 +191,7 @@ export const useUpdateDebt = () => {
 
 // 4. Hook to delete a debt
 export const deleteDebt = async (debtId: string) => {
+  const supabase = await getSupabaseClient();
   const { error } = await supabase.from('debts').delete().eq('id', debtId);
   if (error) throw new Error(error.message);
   return debtId;
