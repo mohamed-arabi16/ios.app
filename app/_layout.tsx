@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useColorScheme } from 'nativewind';
+import { QueueProcessor } from './components/QueueProcessor';
+import Toast from 'react-native-toast-message';
 
 const queryClient = new QueryClient();
 
@@ -17,6 +19,7 @@ const RootLayout = () => {
           <RootLayoutNav />
         </AuthProvider>
       </CustomThemeProvider>
+      <Toast />
     </QueryClientProvider>
   );
 };
@@ -53,6 +56,7 @@ const RootLayoutNav = () => {
 
   return (
     <NavThemeProvider value={effectiveTheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <QueueProcessor />
         <Stack>
           <Stack.Screen name="(app)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

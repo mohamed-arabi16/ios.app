@@ -80,7 +80,15 @@ export const AddEditDebtModal = ({ isVisible, onClose, debtToEdit }: Props) => {
             <Controller name="creditor" control={control} rules={{ required: 'Creditor is required' }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Creditor (e.g., Bank)" value={value} onChangeText={onChange} />} />
 
             {!isEditing && (
-              <Controller name="amount" control={control} rules={{ required: 'Amount is required', valueAsNumber: true, min: { value: 0.01, message: 'Amount must be positive' } }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Initial Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+              <>
+                <Controller name="amount" control={control} rules={{ required: 'Amount is required', valueAsNumber: true, min: { value: 0.01, message: 'Amount must be positive' } }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Initial Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+
+                {/* TODO: Implement a proper picker for currency */}
+                <StyledView className="flex-row justify-between items-center my-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <StyledText className="text-gray-900 dark:text-white">Currency: USD / TRY</StyledText>
+                  <Controller name="currency" control={control} render={({ field: { onChange, value } }) => <Switch value={value === 'TRY'} onValueChange={(isTRY) => onChange(isTRY ? 'TRY' : 'USD')} />} />
+                </StyledView>
+              </>
             )}
 
             <StyledView className="flex-row justify-between items-center my-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">

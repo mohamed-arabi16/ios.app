@@ -2,6 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Currency } from './useIncomes';
+import { useNetwork } from './useNetwork';
+import { addToQueue } from '../lib/offlineQueue';
+import uuid from 'react-native-uuid';
+import Toast from 'react-native-toast-message';
 
 // Type definitions from web app
 export interface DebtAmountHistory {
@@ -14,7 +18,7 @@ export interface DebtAmountHistory {
 }
 
 export interface Debt {
-  id: string;
+  id:string;
   user_id: string;
   title: string;
   creditor: string;
@@ -54,7 +58,7 @@ export const useDebts = () => {
 // 2. Hook to add a new debt
 type AddDebtPayload = Omit<Debt, 'id' | 'user_id' | 'created_at' | 'debt_amount_history'>;
 
-const addDebt = async (newDebt: AddDebtPayload, userId: string) => {
+export const addDebt = async (newDebt: AddDebtPayload, userId: string) => {
     const { data, error } = await supabase
         .from('debts')
         .insert([{ ...newDebt, user_id: userId }])
@@ -68,14 +72,45 @@ const addDebt = async (newDebt: AddDebtPayload, userId: string) => {
 export const useAddDebt = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isOffline } = useNetwork();
+
   return useMutation({
-    mutationFn: (newDebt: AddDebtPayload) => {
-        if (!user) throw new Error('User not authenticated');
+    mutationFn: async (newDebt: AddDebtPayload): Promise<any> => {
+      if (!user) throw new Error('User not authenticated');
+
+      if (isOffline) {
+        const optimisticId = `offline_${uuid.v4()}`;
+        const payload = { ...newDebt, id: optimisticId, user_id: user.id };
+        await addToQueue({ type: 'ADD_DEBT', payload });
+
+        // Optimistic update
+        queryClient.setQueryData(['debts', user.id], (oldData: Debt[] | undefined) => {
+            const newDebtWithDefaults: Debt = {
+                ...newDebt,
+                id: optimisticId,
+                user_id: user.id,
+                created_at: new Date().toISOString(),
+                debt_amount_history: [],
+                currency: newDebt.currency || 'USD',
+                status: newDebt.status || 'pending',
+            };
+            return oldData ? [...oldData, newDebtWithDefaults] : [newDebtWithDefaults];
+        });
+        return newDebtWithDefaults;
+      } else {
         return addDebt(newDebt, user.id);
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
-    },
+        queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
+        Toast.show({ type: 'success', text1: 'Debt added' });
+        if (isOffline) {
+          Toast.show({ type: 'info', text1: 'Your change is saved and will sync when you\'re back online.' });
+        }
+      },
+      onError: (error: Error) => {
+        Toast.show({ type: 'error', text1: 'An error occurred', text2: error.message });
+      },
   });
 };
 
@@ -92,7 +127,7 @@ export interface UpdateDebtPayload {
     note?: string;
 }
 
-const updateDebt = async (payload: UpdateDebtPayload) => {
+export const updateDebt = async (payload: UpdateDebtPayload) => {
     const { id, amount, note, ...basicDetails } = payload;
 
     // Update basic details if they exist
@@ -120,16 +155,39 @@ const updateDebt = async (payload: UpdateDebtPayload) => {
 export const useUpdateDebt = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isOffline } = useNetwork();
+
   return useMutation({
-    mutationFn: updateDebt,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
+    mutationFn: async (payload: UpdateDebtPayload) => {
+      if (isOffline) {
+        await addToQueue({ type: 'UPDATE_DEBT', payload });
+
+        // Optimistic update
+        queryClient.setQueryData(['debts', user?.id], (oldData: Debt[] = []) =>
+          oldData.map(debt =>
+            debt.id === payload.id ? { ...debt, ...payload } : debt
+          )
+        );
+        return payload;
+      } else {
+        return updateDebt(payload);
+      }
     },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
+        Toast.show({ type: 'success', text1: 'Debt updated' });
+        if (isOffline) {
+          Toast.show({ type: 'info', text1: 'Your change is saved and will sync when you\'re back online.' });
+        }
+      },
+      onError: (error: Error) => {
+        Toast.show({ type: 'error', text1: 'An error occurred', text2: error.message });
+      },
   });
 };
 
 // 4. Hook to delete a debt
-const deleteDebt = async (debtId: string) => {
+export const deleteDebt = async (debtId: string) => {
   const { error } = await supabase.from('debts').delete().eq('id', debtId);
   if (error) throw new Error(error.message);
   return debtId;
@@ -138,10 +196,31 @@ const deleteDebt = async (debtId: string) => {
 export const useDeleteDebt = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isOffline } = useNetwork();
+
   return useMutation({
-    mutationFn: deleteDebt,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
+    mutationFn: async (debtId: string) => {
+      if (isOffline) {
+        await addToQueue({ type: 'DELETE_DEBT', payload: { id: debtId } });
+
+        // Optimistic update
+        queryClient.setQueryData(['debts', user?.id], (oldData: Debt[] = []) =>
+          oldData.filter(debt => debt.id !== debtId)
+        );
+        return debtId;
+      } else {
+        return deleteDebt(debtId);
+      }
     },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['debts', user?.id] });
+        Toast.show({ type: 'success', text1: 'Debt deleted' });
+        if (isOffline) {
+          Toast.show({ type: 'info', text1: 'Your change is saved and will sync when you\'re back online.' });
+        }
+      },
+      onError: (error: Error) => {
+        Toast.show({ type: 'error', text1: 'An error occurred', text2: error.message });
+      },
   });
 };
