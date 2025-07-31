@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
-import { Modal, View, Text, TextInput, Pressable, Alert, ActivityIndicator, Switch } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { styled } from 'nativewind';
 import { useForm, Controller } from 'react-hook-form';
 import { useAddAsset, useUpdateAsset, Asset, AssetType } from '../hooks/useAssets';
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { assetSchema, AssetFormData } from '../lib/schemas';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -16,10 +18,17 @@ interface Props {
   assetToEdit?: Asset | null;
 }
 
-type FormData = Omit<Asset, 'id' | 'user_id' | 'created_at'>;
+const assetTypes: AssetType[] = ['crypto', 'gold', 'silver'];
 
 export const AddEditAssetModal = ({ isVisible, onClose, assetToEdit }: Props) => {
-  const { control, handleSubmit, reset } = useForm<FormData>();
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<AssetFormData>({
+    resolver: zodResolver(assetSchema),
+    defaultValues: {
+      name: '',
+      type: 'crypto',
+      amount: 0,
+    },
+  });
 
   const addAssetMutation = useAddAsset();
   const updateAssetMutation = useUpdateAsset();
@@ -31,16 +40,12 @@ export const AddEditAssetModal = ({ isVisible, onClose, assetToEdit }: Props) =>
       if (assetToEdit) {
         reset(assetToEdit);
       } else {
-        reset({
-          name: '',
-          type: 'crypto',
-          amount: 0,
-        });
+        reset();
       }
     }
   }, [assetToEdit, isVisible, reset]);
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: AssetFormData) => {
     const payload = isEditing ? { ...data, id: assetToEdit.id } : data;
     const mutation = isEditing ? updateAssetMutation : addAssetMutation;
 
@@ -59,20 +64,30 @@ export const AddEditAssetModal = ({ isVisible, onClose, assetToEdit }: Props) =>
             <StyledPressable onPress={onClose}><Ionicons name="close" size={24} color="#9CA3AF" /></StyledPressable>
           </StyledView>
 
-          <View>
-            <Controller name="name" control={control} rules={{ required: 'Name is required' }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Asset Name (e.g., Bitcoin)" value={value} onChangeText={onChange} />} />
-            <Controller name="amount" control={control} rules={{ required: 'Amount is required', valueAsNumber: true, min: { value: 0.00001, message: 'Amount must be positive' } }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+          <ScrollView>
+            <Controller name="name" control={control} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Asset Name (e.g., Bitcoin)" value={value} onChangeText={onChange} />} />
+            {errors.name && <StyledText className="text-red-500 mb-2">{errors.name.message}</StyledText>}
+            <Controller name="amount" control={control} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+            {errors.amount && <StyledText className="text-red-500 mb-2">{errors.amount.message}</StyledText>}
 
-            {/* TODO: Implement a proper picker for asset type */}
-            <StyledView className="flex-row justify-between items-center my-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <StyledText className="text-gray-900 dark:text-white">Type: Crypto / Gold</StyledText>
-              <Controller name="type" control={control} render={({ field: { onChange, value } }) => <Switch value={value === 'crypto'} onValueChange={(isCrypto) => onChange(isCrypto ? 'crypto' : 'gold')} />} />
-            </StyledView>
+            <Controller name="type" control={control} render={({ field: { onChange, value } }) => (
+                <View>
+                <StyledText className="text-gray-900 dark:text-white mb-2">Type</StyledText>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+                    {assetTypes.map(t => (
+                    <StyledPressable key={t} onPress={() => onChange(t)} className={`p-3 rounded-lg mr-2 ${value === t ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                        <StyledText className={`capitalize ${value === t ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{t}</StyledText>
+                    </StyledPressable>
+                    ))}
+                </ScrollView>
+                </View>
+            )} />
+            {errors.type && <StyledText className="text-red-500 mb-2">{errors.type.message}</StyledText>}
 
             <StyledPressable className="bg-blue-600 rounded-lg p-4 mt-4 flex-row justify-center items-center" onPress={handleSubmit(onSubmit)} disabled={addAssetMutation.isPending || updateAssetMutation.isPending}>
               {addAssetMutation.isPending || updateAssetMutation.isPending ? <ActivityIndicator color="#fff" /> : <StyledText className="text-white text-lg font-bold">{isEditing ? 'Save Changes' : 'Add Asset'}</StyledText>}
             </StyledPressable>
-          </View>
+          </ScrollView>
         </StyledView>
       </StyledView>
     </Modal>

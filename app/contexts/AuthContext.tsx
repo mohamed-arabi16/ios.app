@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabaseClient } from '../lib/supabaseClient';
 
 // Define the shape of the user profile
 interface UserProfile {
@@ -37,59 +37,68 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const setData = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Error getting session:', error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError.message);
-        } else {
-          setProfile(data);
+    const initialize = async () => {
+      const supabase = await getSupabaseClient();
+      const setData = async () => {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error.message);
+          setIsLoading(false);
+          return;
         }
-      }
-      setIsLoading(false);
-    };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-         supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (error) {
-              console.error('Error fetching profile on change:', error.message);
-            } else {
-              setProfile(data);
-            }
-          });
-      } else {
-        setProfile(null);
-      }
-      setIsLoading(false);
-    });
+        setSession(session);
+        setUser(session?.user ?? null);
 
-    setData();
+        if (session?.user) {
+          const { data, error: profileError } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError.message);
+          } else {
+            setProfile(data);
+          }
+        }
+        setIsLoading(false);
+      };
+
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+           supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', session.user.id)
+            .single()
+            .then(({ data, error }) => {
+              if (error) {
+                console.error('Error fetching profile on change:', error.message);
+              } else {
+                setProfile(data);
+              }
+            });
+        } else {
+          setProfile(null);
+        }
+        setIsLoading(false);
+      });
+
+      setData();
+
+      return () => {
+        listener?.subscription.unsubscribe();
+      };
+    }
+
+    const unsubscribePromise = initialize();
 
     return () => {
-      listener?.subscription.unsubscribe();
+        unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
     };
   }, []);
 
@@ -98,7 +107,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     profile,
     isLoading,
-    signOut: () => supabase.auth.signOut(),
+    signOut: async () => {
+        const supabase = await getSupabaseClient();
+        supabase.auth.signOut();
+    },
   };
 
   return (

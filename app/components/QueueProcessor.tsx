@@ -1,54 +1,77 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNetwork } from '../hooks/useNetwork';
 import { getQueue, clearQueue, Mutation } from '../lib/offlineQueue';
 import { addDebt, updateDebt, deleteDebt } from '../hooks/useDebts';
 import { addAsset, updateAsset, deleteAsset } from '../hooks/useAssets';
 import { useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 
 export const QueueProcessor = () => {
   const { session, user } = useAuth();
   const { isOffline } = useNetwork();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessing = useRef(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const processQueue = async () => {
-      if (isOffline || isProcessing || !session || !user) {
+      if (isOffline || isProcessing.current || !session || !user) {
         return;
       }
 
-      setIsProcessing(true);
-      const queue = await getQueue();
+      isProcessing.current = true;
+      let queue = await getQueue();
 
       if (queue.length === 0) {
-        setIsProcessing(false);
+        isProcessing.current = false;
         return;
       }
 
-      console.log(`Processing ${queue.length} offline mutations...`);
+      // Filter queue to only process mutations for the current user
+      queue = queue.filter(mutation => mutation.payload.user_id === user.id);
 
-      for (const mutation of queue) {
-        try {
-          await processMutation(mutation, user.id);
-        } catch (error) {
-          console.error('Failed to process mutation:', mutation, error);
-          // Optionally, add failed mutations to a separate "dead-letter" queue
-        }
+      if (queue.length > 0) {
+          console.log(`Processing ${queue.length} offline mutations for user ${user.id}...`);
+          Toast.show({
+              type: 'info',
+              text1: 'Syncing your offline changes...',
+              visibilityTime: 2000,
+          });
+
+          for (const mutation of queue) {
+            try {
+              await processMutation(mutation, user.id);
+            } catch (error) {
+              console.error('Failed to process mutation:', mutation, error);
+              Toast.show({
+                  type: 'error',
+                  text1: 'Failed to sync a change',
+                  text2: `Could not process: ${mutation.type}`,
+              });
+            }
+          }
+
+          await clearQueue(); // Consider more granular queue management
+          console.log('Offline queue processed.');
+
+          Toast.show({
+              type: 'success',
+              text1: 'Your data is now up to date!',
+              visibilityTime: 3000,
+          });
+
+          // Invalidate queries to refetch data from server
+          queryClient.invalidateQueries({ queryKey: ['debts', user.id] });
+          queryClient.invalidateQueries({ queryKey: ['assets', user.id] });
       }
 
-      await clearQueue();
-      console.log('Offline queue processed.');
-
-      // Invalidate queries to refetch data from server
-      queryClient.invalidateQueries({ queryKey: ['debts', user.id] });
-      queryClient.invalidateQueries({ queryKey: ['assets', user.id] });
-
-      setIsProcessing(false);
+      isProcessing.current = false;
     };
 
-    processQueue();
-  }, [isOffline, session, user, isProcessing, queryClient]);
+    const intervalId = setInterval(processQueue, 10000); // Check every 10 seconds
+
+    return () => clearInterval(intervalId);
+  }, [isOffline, session, user, queryClient]);
 
   return null; // This is a background component
 };

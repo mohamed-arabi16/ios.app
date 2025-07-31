@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, Alert, ActivityIndicator, Platform, Switch } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, Alert, ActivityIndicator, Platform, Switch, ScrollView } from 'react-native';
 import { styled } from 'nativewind';
 import { useForm, Controller } from 'react-hook-form';
 import { useAddDebt, useUpdateDebt, Debt } from '../hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { debtSchema, DebtFormData } from '../lib/schemas';
+import { Currency } from '../hooks/useIncomes';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -17,10 +20,21 @@ interface Props {
   debtToEdit?: Debt | null;
 }
 
-type FormData = Omit<Debt, 'id' | 'user_id' | 'created_at' | 'debt_amount_history'>;
+const currencies: Currency[] = ['USD', 'TRY', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'];
 
 export const AddEditDebtModal = ({ isVisible, onClose, debtToEdit }: Props) => {
-  const { control, handleSubmit, reset, setValue, watch } = useForm<FormData>();
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<DebtFormData>({
+    resolver: zodResolver(debtSchema),
+    defaultValues: {
+      title: '',
+      creditor: '',
+      amount: 0,
+      currency: 'USD',
+      due_date: new Date().toISOString(),
+      status: 'pending',
+      type: 'short',
+    },
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const addDebtMutation = useAddDebt();
@@ -34,22 +48,12 @@ export const AddEditDebtModal = ({ isVisible, onClose, debtToEdit }: Props) => {
       if (debtToEdit) {
         reset({ ...debtToEdit, amount: Number(debtToEdit.amount) });
       } else {
-        reset({
-          title: '',
-          creditor: '',
-          amount: 0,
-          currency: 'USD',
-          due_date: new Date().toISOString(),
-          status: 'pending',
-          type: 'short',
-        });
+        reset();
       }
     }
   }, [debtToEdit, isVisible, reset]);
 
-  const onSubmit = (data: FormData) => {
-    // In edit mode, we don't update the amount here. That's done via Record Payment.
-    // The useUpdateDebt hook is designed to handle partial updates.
+  const onSubmit = (data: DebtFormData) => {
     const payload = isEditing ? { id: debtToEdit.id, title: data.title, creditor: data.creditor, due_date: data.due_date, type: data.type } : data;
     const mutation = isEditing ? updateDebtMutation : addDebtMutation;
 
@@ -75,19 +79,30 @@ export const AddEditDebtModal = ({ isVisible, onClose, debtToEdit }: Props) => {
             <StyledPressable onPress={onClose}><Ionicons name="close" size={24} color="#9CA3AF" /></StyledPressable>
           </StyledView>
 
-          <View>
-            <Controller name="title" control={control} rules={{ required: 'Title is required' }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Title (e.g., Car Loan)" value={value} onChangeText={onChange} />} />
-            <Controller name="creditor" control={control} rules={{ required: 'Creditor is required' }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Creditor (e.g., Bank)" value={value} onChangeText={onChange} />} />
+          <ScrollView>
+            <Controller name="title" control={control} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Title (e.g., Car Loan)" value={value} onChangeText={onChange} />} />
+            {errors.title && <StyledText className="text-red-500 mb-2">{errors.title.message}</StyledText>}
+            <Controller name="creditor" control={control} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Creditor (e.g., Bank)" value={value} onChangeText={onChange} />} />
+            {errors.creditor && <StyledText className="text-red-500 mb-2">{errors.creditor.message}</StyledText>}
 
             {!isEditing && (
               <>
-                <Controller name="amount" control={control} rules={{ required: 'Amount is required', valueAsNumber: true, min: { value: 0.01, message: 'Amount must be positive' } }} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Initial Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+                <Controller name="amount" control={control} render={({ field: { onChange, value } }) => <StyledTextInput className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 mb-2 text-gray-900 dark:text-white" placeholder="Initial Amount" value={String(value)} onChangeText={(text) => onChange(parseFloat(text) || 0)} keyboardType="numeric" />} />
+                {errors.amount && <StyledText className="text-red-500 mb-2">{errors.amount.message}</StyledText>}
 
-                {/* TODO: Implement a proper picker for currency */}
-                <StyledView className="flex-row justify-between items-center my-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <StyledText className="text-gray-900 dark:text-white">Currency: USD / TRY</StyledText>
-                  <Controller name="currency" control={control} render={({ field: { onChange, value } }) => <Switch value={value === 'TRY'} onValueChange={(isTRY) => onChange(isTRY ? 'TRY' : 'USD')} />} />
-                </StyledView>
+                <Controller name="currency" control={control} render={({ field: { onChange, value } }) => (
+                  <View>
+                    <StyledText className="text-gray-900 dark:text-white mb-2">Currency</StyledText>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+                      {currencies.map(c => (
+                        <StyledPressable key={c} onPress={() => onChange(c)} className={`p-3 rounded-lg mr-2 ${value === c ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                          <StyledText className={value === c ? 'text-white' : 'text-gray-900 dark:text-white'}>{c}</StyledText>
+                        </StyledPressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )} />
+                 {errors.currency && <StyledText className="text-red-500 mb-2">{errors.currency.message}</StyledText>}
               </>
             )}
 
@@ -104,7 +119,7 @@ export const AddEditDebtModal = ({ isVisible, onClose, debtToEdit }: Props) => {
             <StyledPressable className="bg-blue-600 rounded-lg p-4 mt-4 flex-row justify-center items-center" onPress={handleSubmit(onSubmit)} disabled={addDebtMutation.isPending || updateDebtMutation.isPending}>
               {addDebtMutation.isPending || updateDebtMutation.isPending ? <ActivityIndicator color="#fff" /> : <StyledText className="text-white text-lg font-bold">{isEditing ? 'Save Changes' : 'Add Debt'}</StyledText>}
             </StyledPressable>
-          </View>
+          </ScrollView>
         </StyledView>
       </StyledView>
     </Modal>

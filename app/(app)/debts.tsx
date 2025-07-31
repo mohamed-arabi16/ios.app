@@ -76,8 +76,16 @@ export default function DebtScreen() {
       router.push(`/debts/${debtId}`);
   };
 
+  const { data: debts, isLoading, isError, refetch } = useDebts();
   if (isLoading) return <StyledView className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></StyledView>;
-  if (isError) return <StyledView className="flex-1 justify-center items-center"><StyledText className="text-red-500">Error fetching debts.</StyledText></StyledView>;
+  if (isError) return (
+    <StyledView className="flex-1 justify-center items-center p-4">
+        <StyledText className="text-red-500 text-lg text-center mb-4">An error occurred while fetching your debts.</StyledText>
+        <StyledPressable onPress={() => refetch()} className="bg-blue-600 rounded-lg p-3">
+            <StyledText className="text-white font-bold">Try Again</StyledText>
+        </StyledPressable>
+    </StyledView>
+  );
 
   const renderScene = SceneMap({
     short: () => <DebtListScene debts={shortTermDebts} onEdit={handleOpenEditModal} onDelete={handleDelete} onSelect={handleSelectDebt} />,
