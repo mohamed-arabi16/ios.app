@@ -1,10 +1,13 @@
 // types/victory-native.d.ts
-import * as React from 'react';
 declare module 'victory-native' {
+  import * as React from 'react';
+  import type { VictoryThemeDefinition } from 'victory';
+
   export * from 'victory';
 
-  // then declare the extra theme constant so TS stops whining
-  import type { VictoryThemeDefinition } from 'victory';
+  export interface VictoryAxisProps { [k: string]: any }
+  export class VictoryAxis extends React.Component<VictoryAxisProps> {}
+
   export const VictoryTheme: {
     material: VictoryThemeDefinition;
     grayscale: VictoryThemeDefinition;

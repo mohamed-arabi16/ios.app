@@ -4,8 +4,14 @@ import { useIncomes } from '../hooks/useIncomes';
 import { useExpenses } from '../hooks/useExpenses';
 import { useDebts } from '../hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
-import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
-import { VictoryTheme } from 'victory';
+import {
+  VictoryChart,
+  VictoryAxis,
+  VictoryBar,
+  VictoryGroup,
+  VictoryTheme,
+  VictoryLine,
+} from 'victory-native';
 
 // A simple card component for displaying financial figures
 const FinancialCard = ({ title, value, iconName, color = 'text-gray-900 dark:text-white' }: { title: string, value: string, iconName: any, color?: string }) => (
@@ -110,6 +116,7 @@ export default function Dashboard() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   }
 
+  console.log('VictoryAxis test', typeof VictoryAxis);
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#F9FAFB' }}
