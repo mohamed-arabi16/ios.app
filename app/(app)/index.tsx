@@ -144,6 +144,7 @@ export default function Dashboard() {
 
         <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mt-4">
           <Text className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Monthly Cash Flow</Text>
+          <VictoryChart theme={VictoryThemeMaterial} height={220}>
             <VictoryAxis
               style={{
                 axis: { stroke: 'none' },
