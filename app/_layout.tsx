@@ -1,11 +1,11 @@
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from '~/contexts/AuthContext';
 import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
-import { ThemeProvider as CustomThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider as CustomThemeProvider, useTheme } from '~/contexts/ThemeContext';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { QueueProcessor } from './components/QueueProcessor';
+import { QueueProcessor } from '~/components/QueueProcessor';
 import Toast from 'react-native-toast-message';
 const queryClient = new QueryClient();
 

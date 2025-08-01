@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '~/lib/supabaseClient';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';

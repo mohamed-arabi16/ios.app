@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { useDebts, DebtAmountHistory } from '../hooks/useDebts';
+import { useDebts, DebtAmountHistory } from '~/hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
-import { RecordPaymentModal } from '../components/RecordPaymentModal';
+import { RecordPaymentModal } from '~/components/RecordPaymentModal';
 
 const HistoryListItem = ({ item, change }: { item: DebtAmountHistory, change: number }) => {
     const isIncrease = change > 0;

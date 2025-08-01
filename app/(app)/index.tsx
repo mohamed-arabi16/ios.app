@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import { useIncomes } from '../hooks/useIncomes';
-import { useExpenses } from '../hooks/useExpenses';
-import { useDebts } from '../hooks/useDebts';
+import { useIncomes } from '~/hooks/useIncomes';
+import { useExpenses } from '~/hooks/useExpenses';
+import { useDebts } from '~/hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
 import {
   VictoryChart,

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
-import { useExpenses, useDeleteExpense, Expense } from '../hooks/useExpenses';
+import { useExpenses, useDeleteExpense, Expense } from '~/hooks/useExpenses';
 import { Ionicons } from '@expo/vector-icons';
-import { AddEditExpenseModal } from '../components/AddEditExpenseModal';
+import { AddEditExpenseModal } from '~/components/AddEditExpenseModal';
 
 const ExpenseListItem = ({ item, onEdit, onDelete }: { item: Expense, onEdit: (expense: Expense) => void, onDelete: (expenseId: string) => void }) => (
   <View className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4 shadow-sm">
