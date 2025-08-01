@@ -9,9 +9,9 @@ import {
   VictoryAxis,
   VictoryBar,
   VictoryGroup,
-  VictoryTheme,
   VictoryLine,
 } from 'victory-native';
+import { VictoryThemeMaterial } from '~/victoryTheme';
 
 // A simple card component for displaying financial figures
 const FinancialCard = ({ title, value, iconName, color = 'text-gray-900 dark:text-white' }: { title: string, value: string, iconName: any, color?: string }) => (
@@ -116,8 +116,6 @@ export default function Dashboard() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   }
 
-  console.log('VictoryAxis test', typeof VictoryAxis);
-  console.log('VT?', VictoryTheme && Object.keys(VictoryTheme));
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#F9FAFB' }}
@@ -146,7 +144,7 @@ export default function Dashboard() {
 
         <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mt-4">
           <Text className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Monthly Cash Flow</Text>
-          <VictoryChart theme={VictoryTheme.material} height={250}>
+          <VictoryChart theme={VictoryThemeMaterial} height={250}>
             <VictoryAxis
               style={{
                 axis: { stroke: 'none' },
