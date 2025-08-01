@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { getSupabaseClient } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 // Define the shape of the user profile
 interface UserProfile {
@@ -37,68 +37,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initialize = async () => {
-      const supabase = await getSupabaseClient();
-      const setData = async () => {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error.message);
-          setIsLoading(false);
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Error fetching profile:', profileError.message);
-          } else {
-            setProfile(data);
-          }
-        }
+    const setData = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error getting session:', error.message);
         setIsLoading(false);
-      };
+        return;
+      }
 
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-           supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data, error }) => {
-              if (error) {
-                console.error('Error fetching profile on change:', error.message);
-              } else {
-                setProfile(data);
-              }
-            });
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError.message);
         } else {
-          setProfile(null);
+          setProfile(data);
         }
-        setIsLoading(false);
-      });
+      }
+      setIsLoading(false);
+    };
 
-      setData();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+         supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data, error }: { data: UserProfile | null, error: any }) => {
+            if (error) {
+              console.error('Error fetching profile on change:', error.message);
+            } else {
+              setProfile(data);
+            }
+          });
+      } else {
+        setProfile(null);
+      }
+      setIsLoading(false);
+    });
 
-      return () => {
-        listener?.subscription.unsubscribe();
-      };
-    }
-
-    const unsubscribePromise = initialize();
+    setData();
 
     return () => {
-        unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
+      listener?.subscription.unsubscribe();
     };
   }, []);
 
@@ -107,10 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     profile,
     isLoading,
-    signOut: async () => {
-        const supabase = await getSupabaseClient();
-        supabase.auth.signOut();
-    },
+    signOut: () => supabase.auth.signOut(),
   };
 
   return (

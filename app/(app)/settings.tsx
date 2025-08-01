@@ -1,36 +1,30 @@
 import React from 'react';
-import { View, Text, Pressable, Switch, Alert } from 'react-native';
-import { styled } from 'nativewind';
+import { View, Text, Pressable, Switch, Alert, ActivityIndicator } from 'react-native';
 import { useSettings, useUpdateSettings, Theme } from '../hooks/useSettings';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ActivityIndicator } from 'react-native';
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledPressable = styled(Pressable);
 
 const SettingRow = ({ label, children }: { label: string, children: React.ReactNode }) => (
-  <StyledView className="flex-row justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg mb-4">
-    <StyledText className="text-lg text-gray-900 dark:text-white">{label}</StyledText>
-    <StyledView>{children}</StyledView>
-  </StyledView>
+  <View className="flex-row justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg mb-4">
+    <Text className="text-lg text-gray-900 dark:text-white">{label}</Text>
+    <View>{children}</View>
+  </View>
 );
 
 const ThemeSelector = ({ value, onChange }: { value: Theme, onChange: (theme: Theme) => void }) => {
   const options: Theme[] = ['light', 'dark', 'system'];
   return (
-    <StyledView className="flex-row bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
+    <View className="flex-row bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
       {options.map((option) => (
-        <StyledPressable
+        <Pressable
           key={option}
           onPress={() => onChange(option)}
           className={`px-4 py-1 rounded-md ${value === option ? 'bg-white dark:bg-gray-900' : ''}`}
         >
-          <StyledText className={`font-semibold capitalize ${value === option ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}>{option}</StyledText>
-        </StyledPressable>
+          <Text className={`font-semibold capitalize ${value === option ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}>{option}</Text>
+        </Pressable>
       ))}
-    </StyledView>
+    </View>
   );
 };
 
@@ -57,12 +51,12 @@ export default function SettingsScreen() {
   }
 
   if (isLoadingSettings) {
-    return <StyledView className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></StyledView>;
+    return <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></View>;
   }
 
   return (
-    <StyledView className="flex-1 bg-gray-50 dark:bg-gray-900 p-6">
-      <StyledText className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Settings</StyledText>
+    <View className="flex-1 bg-gray-50 dark:bg-gray-900 p-6">
+      <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Settings</Text>
 
       <SettingRow label="Theme">
         <ThemeSelector value={theme} onChange={handleThemeChange} />
@@ -78,15 +72,15 @@ export default function SettingsScreen() {
 
       {/* Placeholder for Currency Setting */}
       <SettingRow label="Default Currency">
-        <StyledText className="text-gray-500">{settings?.default_currency ?? 'USD'}</StyledText>
+        <Text className="text-gray-500">{settings?.default_currency ?? 'USD'}</Text>
       </SettingRow>
 
-      <StyledPressable
+      <Pressable
         onPress={handleSignOut}
         className="bg-red-500 rounded-lg p-4 mt-8 flex-row justify-center items-center"
       >
-        <StyledText className="text-white text-lg font-bold">Sign Out</StyledText>
-      </StyledPressable>
-    </StyledView>
+        <Text className="text-white text-lg font-bold">Sign Out</Text>
+      </Pressable>
+    </View>
   );
 }

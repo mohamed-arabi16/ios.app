@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 
 // Replicating the type definition from the web app for consistency
@@ -19,7 +19,6 @@ export interface Income {
 
 // 1. Hook to fetch all incomes
 const fetchIncomes = async (userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('incomes')
     .select('*')
@@ -47,7 +46,6 @@ export const useIncomes = () => {
 type AddIncomePayload = Omit<Income, 'id' | 'user_id' | 'created_at'>;
 
 const addIncome = async (newIncome: AddIncomePayload, userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data: incomeData, error: insertError } = await supabase
     .from('incomes')
     .insert([{ ...newIncome, user_id: userId }])
@@ -93,7 +91,6 @@ export const useAddIncome = () => {
 type UpdateIncomePayload = Partial<Income> & { id: string };
 
 const updateIncome = async (updatedIncome: UpdateIncomePayload) => {
-  const supabase = await getSupabaseClient();
   const { id, ...updateData } = updatedIncome;
   const { data, error } = await supabase
     .from('incomes')
@@ -120,7 +117,6 @@ export const useUpdateIncome = () => {
 
 // 4. Hook to delete an income
 const deleteIncome = async (incomeId: string) => {
-  const supabase = await getSupabaseClient();
   const { error } = await supabase
     .from('incomes')
     .delete()

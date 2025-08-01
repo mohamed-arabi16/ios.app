@@ -1,34 +1,29 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
-import { styled } from 'nativewind';
 import { useIncomes, useDeleteIncome, Income } from '../hooks/useIncomes';
 import { Ionicons } from '@expo/vector-icons';
 import { AddEditIncomeModal } from '../components/AddEditIncomeModal';
 
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledPressable = styled(Pressable);
-
 // The list item component now includes Edit and Delete buttons
 const IncomeListItem = ({ item, onEdit, onDelete }: { item: Income, onEdit: (income: Income) => void, onDelete: (incomeId: string) => void }) => (
-  <StyledView className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4 shadow-sm">
-    <StyledView className="flex-row justify-between items-start">
-      <StyledView className="flex-1">
-        <StyledText className="text-lg font-bold text-gray-900 dark:text-white w-5/6">{item.title}</StyledText>
-        <StyledText className="text-gray-600 dark:text-gray-400">{new Date(item.date).toLocaleDateString()}</StyledText>
-        <StyledText className={`text-sm font-semibold capitalize ${item.status === 'received' ? 'text-green-500' : 'text-yellow-500'}`}>{item.status}</StyledText>
-      </StyledView>
-      <StyledText className="text-xl font-bold text-gray-900 dark:text-white">${item.amount.toFixed(2)}</StyledText>
-    </StyledView>
-    <StyledView className="flex-row justify-end mt-2">
-      <StyledPressable onPress={() => onEdit(item)} className="p-2">
+  <View className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-4 shadow-sm">
+    <View className="flex-row justify-between items-start">
+      <View className="flex-1">
+        <Text className="text-lg font-bold text-gray-900 dark:text-white w-5/6">{item.title}</Text>
+        <Text className="text-gray-600 dark:text-gray-400">{new Date(item.date).toLocaleDateString()}</Text>
+        <Text className={`text-sm font-semibold capitalize ${item.status === 'received' ? 'text-green-500' : 'text-yellow-500'}`}>{item.status}</Text>
+      </View>
+      <Text className="text-xl font-bold text-gray-900 dark:text-white">${item.amount.toFixed(2)}</Text>
+    </View>
+    <View className="flex-row justify-end mt-2">
+      <Pressable onPress={() => onEdit(item)} className="p-2">
         <Ionicons name="pencil-outline" size={22} color="#3b82f6" />
-      </StyledPressable>
-      <StyledPressable onPress={() => onDelete(item.id)} className="p-2 ml-2">
+      </Pressable>
+      <Pressable onPress={() => onDelete(item.id)} className="p-2 ml-2">
         <Ionicons name="trash-outline" size={22} color="#ef4444" />
-      </StyledPressable>
-    </StyledView>
-  </StyledView>
+      </Pressable>
+    </View>
+  </View>
 );
 
 export default function IncomeScreen() {
@@ -64,15 +59,15 @@ export default function IncomeScreen() {
   };
 
   if (isLoading) {
-    return <StyledView className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900"><ActivityIndicator size="large" /></StyledView>;
+    return <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900"><ActivityIndicator size="large" /></View>;
   }
 
   if (isError) {
-    return <StyledView className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900"><StyledText className="text-red-500">Error fetching incomes.</StyledText></StyledView>;
+    return <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900"><Text className="text-red-500">Error fetching incomes.</Text></View>;
   }
 
   return (
-    <StyledView className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       <FlatList
         data={incomes}
         keyExtractor={(item) => item.id}
@@ -84,26 +79,26 @@ export default function IncomeScreen() {
           />
         )}
         contentContainerStyle={{ padding: 16 }}
-        ListHeaderComponent={() => <StyledText className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Income</StyledText>}
+        ListHeaderComponent={() => <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Income</Text>}
         ListEmptyComponent={() => (
-            <StyledView className="flex-1 justify-center items-center mt-20">
-                <StyledText className="text-lg text-gray-500">No income records found.</StyledText>
-                <StyledText className="text-sm text-gray-400 mt-2">Press the '+' button to add one.</StyledText>
-            </StyledView>
+            <View className="flex-1 justify-center items-center mt-20">
+                <Text className="text-lg text-gray-500">No income records found.</Text>
+                <Text className="text-sm text-gray-400 mt-2">Press the &apos;+&apos; button to add one.</Text>
+            </View>
         )}
       />
-      <StyledPressable
+      <Pressable
         className="absolute bottom-8 right-8 bg-blue-600 w-16 h-16 rounded-full justify-center items-center shadow-lg"
         onPress={handleOpenAddModal}
       >
         <Ionicons name="add" size={32} color="white" />
-      </StyledPressable>
+      </Pressable>
 
       <AddEditIncomeModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         incomeToEdit={selectedIncome}
       />
-    </StyledView>
+    </View>
   );
 }

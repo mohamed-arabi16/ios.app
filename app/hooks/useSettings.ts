@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Currency } from './useIncomes';
 
@@ -15,7 +15,6 @@ export interface UserSettings {
 
 // 1. Hook to fetch user settings
 const fetchSettings = async (userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('user_settings')
     .select('*')
@@ -43,7 +42,6 @@ export const useSettings = () => {
 // 2. Hook to update user settings
 // We use upsert here because a user might not have a settings row initially
 const updateSettings = async (updatedSettings: Partial<UserSettings>, userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('user_settings')
     .upsert({ ...updatedSettings, user_id: userId })

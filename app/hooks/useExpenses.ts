@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Currency } from './useIncomes'; // Re-using Currency type
 
@@ -18,7 +18,6 @@ export interface Expense {
 
 // 1. Hook to fetch all expenses
 const fetchExpenses = async (userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
@@ -45,7 +44,6 @@ export const useExpenses = () => {
 type AddExpensePayload = Omit<Expense, 'id' | 'user_id' | 'created_at'>;
 
 const addExpense = async (newExpense: AddExpensePayload, userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('expenses')
     .insert([{ ...newExpense, user_id: userId }])
@@ -75,7 +73,6 @@ export const useAddExpense = () => {
 type UpdateExpensePayload = Partial<Expense> & { id: string };
 
 const updateExpense = async (updatedExpense: UpdateExpensePayload) => {
-  const supabase = await getSupabaseClient();
   const { id, ...updateData } = updatedExpense;
   const { data, error } = await supabase
     .from('expenses')
@@ -102,7 +99,6 @@ export const useUpdateExpense = () => {
 
 // 4. Hook to delete an expense
 const deleteExpense = async (expenseId: string) => {
-  const supabase = await getSupabaseClient();
   const { error } = await supabase
     .from('expenses')
     .delete()
