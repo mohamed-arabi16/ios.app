@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable, Switch, Alert, ActivityIndicator } from 'react-native';
-import { useSettings, useUpdateSettings, Theme } from '../hooks/useSettings';
-import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useSettings, useUpdateSettings, Theme } from '~/hooks/useSettings';
+import { useTheme } from '~/contexts/ThemeContext';
+import { useAuth } from '~/contexts/AuthContext';
 
 const SettingRow = ({ label, children }: { label: string, children: React.ReactNode }) => (
   <View className="flex-row justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg mb-4">

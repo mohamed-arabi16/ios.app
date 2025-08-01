@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
-import { useAssets, useDeleteAsset, Asset } from '../hooks/useAssets';
+import { useAssets, useDeleteAsset, Asset } from '~/hooks/useAssets';
 import { Ionicons } from '@expo/vector-icons';
-import { AddEditAssetModal } from '../components/AddEditAssetModal';
+import { AddEditAssetModal } from '~/components/AddEditAssetModal';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../contexts/AuthContext';
-import { useAssetPrices } from '../hooks/useAssetPrices';
+import { useAuth } from '~/contexts/AuthContext';
+import { useAssetPrices } from '~/hooks/useAssetPrices';
 
 const AssetListItem = ({ item, price, onEdit, onDelete }: { item: Asset, price: number | undefined, onEdit: (asset: Asset) => void, onDelete: (assetId: string) => void }) => {
     const value = price ? item.amount * price : null;

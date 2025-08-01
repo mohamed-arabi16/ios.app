@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
-import { useIncomes, useDeleteIncome, Income } from '../hooks/useIncomes';
+import { useIncomes, useDeleteIncome, Income } from '~/hooks/useIncomes';
 import { Ionicons } from '@expo/vector-icons';
-import { AddEditIncomeModal } from '../components/AddEditIncomeModal';
+import { AddEditIncomeModal } from '~/components/AddEditIncomeModal';
 
 // The list item component now includes Edit and Delete buttons
 const IncomeListItem = ({ item, onEdit, onDelete }: { item: Income, onEdit: (income: Income) => void, onDelete: (incomeId: string) => void }) => (
