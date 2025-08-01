@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useNetwork } from './useNetwork';
 import { addToQueue } from '../lib/offlineQueue';
@@ -18,7 +18,6 @@ export interface Asset {
 
 // 1. Hook to fetch all assets
 const fetchAssets = async (userId: string) => {
-  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('assets')
     .select('*')
@@ -45,7 +44,6 @@ export const useAssets = () => {
 type AddAssetPayload = Omit<Asset, 'id' | 'user_id' | 'created_at'>;
 
 export const addAsset = async (newAsset: AddAssetPayload, userId: string) => {
-    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
         .from('assets')
         .insert([{ ...newAsset, user_id: userId }])
@@ -69,14 +67,13 @@ export const useAddAsset = () => {
         const optimisticId = `offline_${uuid.v4()}`;
         const payload = { ...newAsset, id: optimisticId, user_id: user.id };
         await addToQueue({ type: 'ADD_ASSET', payload });
-
+        const newAssetWithDefaults: Asset = {
+            ...newAsset,
+            id: optimisticId,
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+        };
         queryClient.setQueryData(['assets', user.id], (oldData: Asset[] | undefined) => {
-            const newAssetWithDefaults: Asset = {
-                ...newAsset,
-                id: optimisticId,
-                user_id: user.id,
-                created_at: new Date().toISOString(),
-            };
             return oldData ? [...oldData, newAssetWithDefaults] : [newAssetWithDefaults];
         });
         return newAssetWithDefaults;
@@ -94,7 +91,6 @@ export const useAddAsset = () => {
 export type UpdateAssetPayload = Partial<Omit<Asset, 'id' | 'user_id' | 'created_at'>> & { id: string };
 
 export const updateAsset = async (payload: UpdateAssetPayload) => {
-    const supabase = await getSupabaseClient();
     const { id, ...updateData } = payload;
     const { data, error } = await supabase
         .from('assets')
@@ -133,7 +129,6 @@ export const useUpdateAsset = () => {
 
 // 4. Hook to delete an asset
 export const deleteAsset = async (assetId: string) => {
-  const supabase = await getSupabaseClient();
   const { error } = await supabase.from('assets').delete().eq('id', assetId);
   if (error) throw new Error(error.message);
   return assetId;

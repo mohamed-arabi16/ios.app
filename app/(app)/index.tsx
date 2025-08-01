@@ -1,25 +1,20 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import { styled } from 'nativewind';
 import { useIncomes } from '../hooks/useIncomes';
 import { useExpenses } from '../hooks/useExpenses';
 import { useDebts } from '../hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
 import { VictoryChart, VictoryLine, VictoryTheme, VictoryAxis } from 'victory-native';
-import { Defs, LinearGradient, Stop } from 'react-native-svg';
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
 
 // A simple card component for displaying financial figures
 const FinancialCard = ({ title, value, iconName, color = 'text-gray-900 dark:text-white' }: { title: string, value: string, iconName: any, color?: string }) => (
-  <StyledView className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
-    <StyledView className="flex-row items-center mb-2">
+  <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
+    <View className="flex-row items-center mb-2">
       <Ionicons name={iconName} size={20} color="#888" />
-      <StyledText className="text-lg font-semibold text-gray-600 dark:text-gray-400 ml-2">{title}</StyledText>
-    </StyledView>
-    <StyledText className={`text-3xl font-bold ${color}`}>{value}</StyledText>
-  </StyledView>
+      <Text className="text-lg font-semibold text-gray-600 dark:text-gray-400 ml-2">{title}</Text>
+    </View>
+    <Text className={`text-3xl font-bold ${color}`}>{value}</Text>
+  </View>
 );
 
 export default function Dashboard() {
@@ -95,18 +90,18 @@ export default function Dashboard() {
 
   if (isLoading && !refreshing) {
     return (
-      <StyledView className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900">
+      <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900">
         <ActivityIndicator size="large" />
-        <StyledText className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading your financial data...</StyledText>
-      </StyledView>
+        <Text className="mt-4 text-lg text-gray-600 dark:text-gray-400">Loading your financial data...</Text>
+      </View>
     );
   }
 
   if (isError) {
     return (
-      <StyledView className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900 p-4">
-        <StyledText className="text-lg text-red-500 text-center">There was an error fetching your data. Please try again.</StyledText>
-      </StyledView>
+      <View className="flex-1 justify-center items-center bg-gray-50 dark:bg-gray-900 p-4">
+        <Text className="text-lg text-red-500 text-center">There was an error fetching your data. Please try again.</Text>
+      </View>
     );
   }
 
@@ -116,11 +111,11 @@ export default function Dashboard() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50 dark:bg-gray-900"
+      style={{ flex: 1, backgroundColor: '#F9FAFB' }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <StyledView className="p-6 space-y-6">
-        <StyledText className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</StyledText>
+      <View className="p-6 space-y-6">
+        <Text className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</Text>
 
         <FinancialCard
           title="Available Balance"
@@ -140,15 +135,9 @@ export default function Dashboard() {
           color="text-orange-500"
         />
 
-        <StyledView className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mt-4">
-          <StyledText className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Monthly Cash Flow</StyledText>
+        <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mt-4">
+          <Text className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Monthly Cash Flow</Text>
           <VictoryChart theme={VictoryTheme.material} height={250}>
-            <Defs>
-              <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <Stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
-                <Stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
-              </LinearGradient>
-            </Defs>
             <VictoryAxis
               style={{
                 axis: { stroke: 'none' },
@@ -158,7 +147,7 @@ export default function Dashboard() {
             />
             <VictoryAxis
               dependentAxis
-              tickFormat={(t) => `$${t/1000}k`}
+              tickFormat={(t: number) => `$${t/1000}k`}
               style={{
                 axis: { stroke: 'none' },
                 tickLabels: { fill: '#9CA3AF', fontSize: 10 },
@@ -173,8 +162,8 @@ export default function Dashboard() {
               interpolation="monotoneX"
             />
           </VictoryChart>
-        </StyledView>
-      </StyledView>
+        </View>
+      </View>
     </ScrollView>
   );
 }
