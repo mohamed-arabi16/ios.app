@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert, useWindowDimensions, StyleSheet , GestureResponderEvent } from 'react-native';
-import { useDebts, useDeleteDebt, Debt } from '../hooks/useDebts';
+import { useDebts, useDeleteDebt, Debt } from '~/hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
-import { AddEditDebtModal } from '../components/AddEditDebtModal';
+import { AddEditDebtModal } from '~/components/AddEditDebtModal';
 import { TabView, SceneMap, TabBar, SceneRendererProps, NavigationState } from 'react-native-tab-view';
 import { useRouter } from 'expo-router';
 
