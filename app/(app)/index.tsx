@@ -117,6 +117,7 @@ export default function Dashboard() {
   }
 
   console.log('VictoryAxis test', typeof VictoryAxis);
+  console.log('VT?', VictoryTheme && Object.keys(VictoryTheme));
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#F9FAFB' }}
