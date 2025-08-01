@@ -4,7 +4,8 @@ import { useIncomes } from '../hooks/useIncomes';
 import { useExpenses } from '../hooks/useExpenses';
 import { useDebts } from '../hooks/useDebts';
 import { Ionicons } from '@expo/vector-icons';
-import { VictoryChart, VictoryLine, VictoryTheme, VictoryAxis } from 'victory-native';
+import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
+import { VictoryTheme } from 'victory';
 
 // A simple card component for displaying financial figures
 const FinancialCard = ({ title, value, iconName, color = 'text-gray-900 dark:text-white' }: { title: string, value: string, iconName: any, color?: string }) => (
