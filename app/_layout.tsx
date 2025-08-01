@@ -5,7 +5,6 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useColorScheme } from 'nativewind';
 import { QueueProcessor } from './components/QueueProcessor';
 import Toast from 'react-native-toast-message';
 const queryClient = new QueryClient();
@@ -26,18 +25,8 @@ const RootLayout = () => {
 const RootLayoutNav = () => {
   const { session, isLoading } = useAuth();
   const { effectiveTheme } = useTheme();
-  const { setColorScheme } = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
-
-  useEffect(() => {
-    // Sync NativeWind theme with our custom theme context
-    try {
-      setColorScheme(effectiveTheme);
-    } catch (e) {
-      console.warn('Cannot set color scheme. Is darkMode set to "class"?', e);
-    }
-  }, [effectiveTheme]);
 
   useEffect(() => {
     if (isLoading) return;

@@ -9,11 +9,9 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "global.d.ts",
-    "types/**/*.d.ts"
+    "nativewind-env.d.ts",
+    "types/**/*.d.ts",
+    "app/**/*",
+    "components/**/*"
   ]
 }

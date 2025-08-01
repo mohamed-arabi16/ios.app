@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useColorScheme as useDeviceColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useColorScheme } from 'nativewind';
 import { Theme } from '../hooks/useSettings';
 
 const THEME_STORAGE_KEY = '@BalanceTracker:theme';
@@ -25,6 +26,7 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const deviceScheme = useDeviceColorScheme();
   const [theme, setThemeState] = useState<Theme>('system');
+  const { setColorScheme } = useColorScheme();
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -50,6 +52,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const effectiveTheme = theme === 'system' ? deviceScheme || 'light' : theme;
+
+  useEffect(() => {
+    try {
+      setColorScheme?.(effectiveTheme);
+    } catch (e) {
+      console.warn('darkMode not set to "class" in tailwind.config.js', e);
+    }
+  }, [effectiveTheme, setColorScheme]);
 
   // This value will be provided to the rest of the app
   const value = {
