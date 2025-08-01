@@ -32,7 +32,11 @@ const RootLayoutNav = () => {
 
   useEffect(() => {
     // Sync NativeWind theme with our custom theme context
-    setColorScheme(effectiveTheme);
+    try {
+      setColorScheme(effectiveTheme);
+    } catch (e) {
+      console.warn('Cannot set color scheme. Is darkMode set to "class"?', e);
+    }
   }, [effectiveTheme]);
 
   useEffect(() => {
