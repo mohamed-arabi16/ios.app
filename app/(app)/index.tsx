@@ -29,7 +29,7 @@ export default function Dashboard() {
     Promise.all([refetchIncomes(), refetchExpenses(), refetchDebts()]).then(() => {
       setRefreshing(false);
     });
-  }, []);
+  }, [refetchIncomes, refetchExpenses, refetchDebts]);
 
   // Memoized calculations
   const { availableBalance, upcomingIncome, shortTermDebt, cashFlowData } = useMemo(() => {
